@@ -64,9 +64,7 @@ public final class TestAccount extends TestData {
     @DisplayName("Test. GET /account/v1/withdraw/charge")
     void withdrawCharge() throws CloudException {
         System.out.println(
-                call.callCloud(new AccountWithdrawChargeRequest()
-                        .setCurrency("BMX")
-                )
+                call.callCloud(new AccountWithdrawChargeRequest("BMX"))
         );
     }
 

@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'idea'
+    id 'maven-publish'
 }
 
 group 'com.bitmart'
@@ -16,6 +17,7 @@ repositories {
 
 dependencies {
 
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.0'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'
     implementation group: 'commons-codec', name: 'commons-codec', version: '1.12'
@@ -45,4 +47,33 @@ task(unproxy) {
     System.setProperty("socksProxyHost", "")
     System.setProperty("socksProxyPort", "")
 }
+
+publishing {
+    publications {
+        customLibrary(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'bitmart-api-lib'
+            url = layout.buildDirectory.dir("repo")
+        }
+    }
+}
+
+/*pom.withXml {
+    asNode()
+            .dependencies
+            .dependency
+            .findAll { dependency ->
+                // find all dependencies with runtime scope
+                dependency.scope.text() == 'runtime'
+            }
+            .each { dependency ->
+                // set the scope to 'compile'
+                dependency.scope*.value = 'compile'
+            }
+}*/
 compileJava.dependsOn(unproxy)

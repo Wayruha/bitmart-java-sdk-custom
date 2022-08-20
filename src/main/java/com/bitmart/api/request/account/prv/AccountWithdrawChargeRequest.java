@@ -16,14 +16,15 @@ import lombok.experimental.Accessors;
 public class AccountWithdrawChargeRequest extends CloudRequest {
 
     @ParamKey("currency")
-    private String currency;    //Token symbol, e.g., 'BTC'
+    private final String currency;    //Token symbol, e.g., 'BTC'
 
     /**
      * url: GET https://api-cloud.bitmart.com/account/v1/withdraw/charge
      * Query withdraw quota for currencies
      */
-    public AccountWithdrawChargeRequest() {
+    public AccountWithdrawChargeRequest(String currency) {
         super("/account/v1/withdraw/charge", Method.GET, Auth.KEYED);
+        this.currency = currency;
     }
 }
 
