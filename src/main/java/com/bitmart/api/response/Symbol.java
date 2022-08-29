@@ -29,7 +29,8 @@ public class Symbol {
 
     public enum TradeStatus {
         TRADING("trading"),
-        PRE_TRADE("pre-trading");
+        PRE_TRADING("pre-trading"),
+        PRE_TRADE("pre-trade");
 
         private final String name;
 

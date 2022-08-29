@@ -13,7 +13,7 @@ public final class TestContract extends TestData {
     @DisplayName("Test. GET /contract/v1/tickers")
     void contracts() throws CloudException {
         System.out.println(
-                call.callCloud(new TickerRequest().setContract_symbol("ETHUSDT"))
+                call.callCloud(new TickerRequest().setContractSymbol("ETHUSDT"))
         );
     }
 
