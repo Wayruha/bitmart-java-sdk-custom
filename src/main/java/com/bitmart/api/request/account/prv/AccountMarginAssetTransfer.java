@@ -7,7 +7,6 @@ import com.bitmart.api.request.Method;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -27,15 +26,7 @@ public class AccountMarginAssetTransfer extends CloudRequest {
 
     @RequiredArgsConstructor
     public enum TransferSide {
-        IN("in"), OUT("out");
-
-        @Getter
-        private final String code;
-
-        public static TransferSide fromCode(String code) {
-            return Arrays.stream(values())
-                    .filter(v -> v.code.equals(code))
-                    .findFirst().orElseThrow(() -> new IllegalArgumentException("Wrong TransferType code:" + code));
-        }
+        in,
+        out;
     }
 }
