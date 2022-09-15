@@ -18,21 +18,21 @@ public class AccountMarginAssetTransfer extends CloudRequest {
     private String currency;
     @ParamKey("amount")
     private BigDecimal amount;
-    @ParamKey("type")
-    private TransferType type;
+    @ParamKey("side")
+    private TransferSide side;
 
     public AccountMarginAssetTransfer() {
-        super("spot/v1/margin/isolated/transfer", Method.POST, Auth.KEYED);
+        super("/spot/v1/margin/isolated/transfer", Method.POST, Auth.SIGNED);
     }
 
     @RequiredArgsConstructor
-    public enum TransferType {
+    public enum TransferSide {
         IN("in"), OUT("out");
 
         @Getter
         private final String code;
 
-        public static TransferType fromCode(String code) {
+        public static TransferSide fromCode(String code) {
             return Arrays.stream(values())
                     .filter(v -> v.code.equals(code))
                     .findFirst().orElseThrow(() -> new IllegalArgumentException("Wrong TransferType code:" + code));
