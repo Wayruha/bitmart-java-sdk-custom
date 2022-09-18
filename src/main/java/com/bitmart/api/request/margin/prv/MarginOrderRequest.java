@@ -38,7 +38,7 @@ public class MarginOrderRequest extends CloudRequest {
     private String clientOrderId; //Client-defined OrderId(A combination of numbers and letters, less than 32 bits)
 
     public MarginOrderRequest() {
-        super("spot/v1/margin/submit_order", Method.POST, Auth.SIGNED);
+        super("/spot/v1/margin/submit_order", Method.POST, Auth.SIGNED);
     }
 
     public MarginOrderRequest(String symbol, String side, String type, String size, String price, String notional, String clientOrderId) {
