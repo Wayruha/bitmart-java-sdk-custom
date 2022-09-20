@@ -28,4 +28,9 @@ public final class TickersRequest extends CloudRequest {
     public TickersRequest() {
         super("/spot/v1/ticker", Method.GET, Auth.NONE);
     }
+
+    public TickersRequest(String symbol) {
+        this();
+        this.symbol = symbol;
+    }
 }

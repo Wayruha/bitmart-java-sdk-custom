@@ -14,13 +14,13 @@ import lombok.experimental.Accessors;
 @Data
 @ToString
 @Accessors(chain = true)
-public class TickerRequest extends CloudRequest {
+public class ContractTickerRequest extends CloudRequest {
 
     @ParamKey("contract_symbol")
     @SerializedName("contract_symbol")
     private String contractSymbol;     //Contract Trading pair: contract_symbol (Optional, return the market information of all trading pairs by default)
 
-    public TickerRequest(String contractSymbol) {
+    public ContractTickerRequest(String contractSymbol) {
         this();
         this.contractSymbol = contractSymbol;
     }
@@ -29,7 +29,7 @@ public class TickerRequest extends CloudRequest {
      * url: GET https://api-cloud.bitmart.com/contract/v1/tickers
      * Get the latest market quotations of the futures
      */
-    public TickerRequest() {
+    public ContractTickerRequest() {
         super("/spot/v1/ticker", Method.GET, Auth.NONE);
     }
 }
