@@ -2,6 +2,9 @@ package com.bitmart.websocket;
 
 import com.bitmart.api.common.JsonUtils;
 import com.bitmart.api.common.StringCompress;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.*;
@@ -11,16 +14,21 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
+public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
 
     private final WebSocketClientHandshaker handShaker;
-    private final WebSocketClient webSocketClient;
+    private final WebSocketClient<T> webSocketClient;
     private ChannelPromise handshakeFuture;
+    private final ObjectMapper mapper;
+    private final ObjectReader typeReader;
 
 
-    public WebSocketClientHandler(WebSocketClientHandshaker handShaker, WebSocketClient webSocketClient) {
+    public WebSocketClientHandler(WebSocketClientHandshaker handShaker, WebSocketClient<T> webSocketClient) {
         this.handShaker = handShaker;
         this.webSocketClient = webSocketClient;
+        this.mapper = new ObjectMapper();
+        this.typeReader = mapper.readerFor(new TypeReference<T>() {
+        });
     }
 
     public ChannelFuture handshakeFuture() {
@@ -43,7 +51,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         log.info("WebSocket Client disconnected! {}", handShaker.uri().toString());
 
         if (this.webSocketClient.isClose()) {
-            return ;
+            return;
         }
 
         final EventLoop eventLoop = ctx.channel().eventLoop();
@@ -65,14 +73,14 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             }
             return;
         }
-
+        final WebSocketCallBack<T> callBack = this.webSocketClient.callBack;
         if (msg instanceof WebSocketFrame) {
             WebSocketFrame frame = (WebSocketFrame) msg;
 
             if (frame instanceof TextWebSocketFrame) {
                 TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
                 String message = textFrame.text();
-                if( this.webSocketClient.isPrint()) {
+                if (this.webSocketClient.isPrint()) {
                     log.info("WebSocket Client received message:{}", message);
                 }
 
@@ -80,15 +88,13 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 String errorCode = JsonUtils.fromJson(message, "errorCode");
                 if ("login".equals(event) && StringUtils.isNotBlank(errorCode)) {
                     this.webSocketClient.stop();
-                    return ;
+                    return;
                 }
 
-                this.webSocketClient.callBack.onMessage(textFrame.text());
+                callBack.onResponse(parseResponse(textFrame.text(), callBack.getType()));
             } else if (frame instanceof BinaryWebSocketFrame) {
                 BinaryWebSocketFrame binaryWebSocketFrame = (BinaryWebSocketFrame) frame;
-
-                this.webSocketClient.callBack.onMessage(StringCompress.decode(binaryWebSocketFrame.content()));
-
+                this.webSocketClient.callBack.onResponse(parseResponse(StringCompress.decode(binaryWebSocketFrame.content()), callBack.getType()));
             } else if (frame instanceof PongWebSocketFrame) {
                 // System.out.println("WebSocket Client received pong");
 
@@ -97,7 +103,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 ch.close();
             }
         }
-
     }
 
     @Override
@@ -109,4 +114,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         ctx.close();
     }
 
+    private <X> X parseResponse(String json, TypeReference<X> ref) {
+        try {
+            return mapper.readValue(json, ref);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

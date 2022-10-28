@@ -5,6 +5,7 @@ import com.bitmart.api.common.GlobalConst;
 import com.bitmart.api.common.JsonUtils;
 import com.bitmart.api.key.CloudKey;
 import com.bitmart.api.key.CloudSignature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
@@ -37,7 +38,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 @Slf4j
-public class WebSocketClient {
+public class WebSocketClient<T> {
 
     private EventLoopGroup group;
     private Channel clientChannel;
@@ -51,29 +52,29 @@ public class WebSocketClient {
     private boolean isPrint = true;
     private boolean isClose = false;
 
-    public WebSocketCallBack callBack;
+    public WebSocketCallBack<T> callBack;
 
-    public WebSocketClient(WebSocketCallBack callBack) throws CloudException, URISyntaxException, SSLException {
+    public WebSocketClient(WebSocketCallBack<T> callBack) throws CloudException, URISyntaxException, SSLException {
         init(GlobalConst.CLOUD_WS_URL, null, callBack);
     }
 
 
-    public WebSocketClient(CloudKey cloudKey, WebSocketCallBack callBack) throws CloudException, URISyntaxException, SSLException {
+    public WebSocketClient(CloudKey cloudKey, WebSocketCallBack<T> callBack) throws CloudException, URISyntaxException, SSLException {
         init(GlobalConst.CLOUD_WS_URL, cloudKey, callBack);
     }
 
 
-    public WebSocketClient(String url, WebSocketCallBack callBack) throws CloudException, URISyntaxException, SSLException {
+    public WebSocketClient(String url, WebSocketCallBack<T> callBack) throws CloudException, URISyntaxException, SSLException {
         init(url, null, callBack);
     }
 
 
-    public WebSocketClient(String url, CloudKey cloudKey, WebSocketCallBack callBack) throws CloudException, URISyntaxException, SSLException {
+    public WebSocketClient(String url, CloudKey cloudKey, WebSocketCallBack<T> callBack) throws CloudException, URISyntaxException, SSLException {
         init(url, cloudKey, callBack);
     }
 
 
-    private void init(String url, CloudKey cloudKey, WebSocketCallBack callBack) throws CloudException, URISyntaxException, SSLException {
+    private void init(String url, CloudKey cloudKey, WebSocketCallBack<T> callBack) throws CloudException, URISyntaxException, SSLException {
         this.cloudKey = cloudKey;
         this.callBack = callBack;
         this.uri = new URI(url);
@@ -113,8 +114,8 @@ public class WebSocketClient {
                 this.group = new NioEventLoopGroup();
             }
 
-            final WebSocketClientHandler handler =
-                    new WebSocketClientHandler(
+            final WebSocketClientHandler<T> handler =
+                    new WebSocketClientHandler<>(
                             WebSocketClientHandshakerFactory.newHandshaker(
                                     uri, WebSocketVersion.V13, null, false, new DefaultHttpHeaders()),
                             this);
@@ -157,7 +158,8 @@ public class WebSocketClient {
 
             try {
                 Thread.sleep(2000L);
-            } catch (InterruptedException e) { }
+            } catch (InterruptedException e) {
+            }
 
             if (!CollectionUtils.isEmpty(this.reconnectionChannel)) {
                 this.subscribe(this.reconnectionChannel);
@@ -189,7 +191,7 @@ public class WebSocketClient {
 
     }
 
-    public void subscribe(List<String> channels)  {
+    public void subscribe(List<String> channels) {
         this.reconnectionChannel.addAll(channels);
         OpParam opParam = new OpParam().setOp("subscribe").setArgs(channels);
 
@@ -207,7 +209,7 @@ public class WebSocketClient {
             @Override
             public void run() {
                 if (channel.isActive()) {
-                    channel.writeAndFlush(new PingWebSocketFrame(Unpooled.wrappedBuffer(new byte[] { 8, 1, 8, 1 })));
+                    channel.writeAndFlush(new PingWebSocketFrame(Unpooled.wrappedBuffer(new byte[]{8, 1, 8, 1})));
                 }
             }
         }, 2000, 10000);
@@ -220,15 +222,15 @@ public class WebSocketClient {
         this.group.shutdownGracefully();
     }
 
-    public void setIsPrint(boolean isPrint){
+    public void setIsPrint(boolean isPrint) {
         this.isPrint = isPrint;
     }
 
-    public boolean isPrint(){
+    public boolean isPrint() {
         return this.isPrint;
     }
 
-    public boolean isClose()  {
+    public boolean isClose() {
         return this.isClose;
     }
 }

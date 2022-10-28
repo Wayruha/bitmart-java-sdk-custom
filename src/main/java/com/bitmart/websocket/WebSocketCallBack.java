@@ -1,7 +1,12 @@
 package com.bitmart.websocket;
 
-public abstract class WebSocketCallBack {
-    /** Invoked when a text (type {@code 0x1}) message has been received. */
-    public abstract void onMessage(String text);
+import com.fasterxml.jackson.core.type.TypeReference;
 
+public interface WebSocketCallBack<T> {
+    /**
+     * Invoked when a text (type {@code 0x1}) message has been received.
+     */
+    void onResponse(T data);
+
+    TypeReference<T> getType();
 }

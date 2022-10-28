@@ -1,6 +1,7 @@
 package com.bitmart.api;
 
 import com.bitmart.api.key.CloudKey;
+import com.bitmart.api.response.Response;
 import com.bitmart.websocket.WebSocketCallBack;
 import com.bitmart.websocket.WebSocketClient;
 import com.google.common.collect.ImmutableList;
@@ -25,13 +26,12 @@ public final class TestWebSocket extends TestData {
 
     }
 
-    public class ReceiveMessage extends WebSocketCallBack {
+    public class ReceiveMessage implements WebSocketCallBack<String> {
         @Override
-        public void onMessage(String text) {
+        public void onResponse(Response<String> text) {
             System.out.println("onMessage---------------->");
             System.out.println(text);
         }
-
     }
 
     @Test
