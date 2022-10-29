@@ -4,6 +4,7 @@ import com.bitmart.api.key.CloudKey;
 import com.bitmart.api.response.Response;
 import com.bitmart.websocket.WebSocketCallBack;
 import com.bitmart.websocket.WebSocketClient;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Test;
 
@@ -26,11 +27,16 @@ public final class TestWebSocket extends TestData {
 
     }
 
-    public class ReceiveMessage implements WebSocketCallBack<String> {
+    public class ReceiveMessage implements WebSocketCallBack<Response<String>> {
         @Override
         public void onResponse(Response<String> text) {
             System.out.println("onMessage---------------->");
             System.out.println(text);
+        }
+
+        @Override
+        public TypeReference<Response<String>> getType() {
+            return new TypeReference<Response<String>>() {};
         }
     }
 
