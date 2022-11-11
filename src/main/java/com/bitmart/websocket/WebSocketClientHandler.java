@@ -15,13 +15,11 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
-
     private final WebSocketClientHandshaker handShaker;
     private final WebSocketClient<T> webSocketClient;
     private ChannelPromise handshakeFuture;
     private final ObjectMapper mapper;
     private final ObjectReader typeReader;
-
 
     public WebSocketClientHandler(WebSocketClientHandshaker handShaker, WebSocketClient<T> webSocketClient) {
         this.handShaker = handShaker;
@@ -43,12 +41,12 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         handShaker.handshake(ctx.channel());
-        log.info("WebSocket Client Connecting to {}", handShaker.uri().toString());
+        log.debug("WebSocket Client({}) Connecting to {}", webSocketClient.getClientId(), handShaker.uri().toString());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        log.info("WebSocket Client disconnected! {}", handShaker.uri().toString());
+        log.debug("WebSocket Client({}) disconnected! {}", webSocketClient.getClientId(), handShaker.uri().toString());
 
         if (this.webSocketClient.isClose()) {
             return;
@@ -65,10 +63,10 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
         if (!handShaker.isHandshakeComplete()) {
             try {
                 handShaker.finishHandshake(ch, (FullHttpResponse) msg);
-                log.info("WebSocket Client connected!");
+                log.debug("WebSocket Client({}) connected!", webSocketClient.getClientId());
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
-                log.error("WebSocket Client failed to connect");
+                log.error("WebSocket Client({}) failed to connect", webSocketClient.getClientId());
                 handshakeFuture.setFailure(e);
             }
             return;
@@ -81,7 +79,7 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
                 TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
                 String message = textFrame.text();
                 if (this.webSocketClient.isPrint()) {
-                    log.debug("WebSocket Client received message:{}", message);
+                    log.debug("WebSocket Client({}) received message:{}", webSocketClient.getClientId(), message);
                 }
 
                 String event = JsonUtils.fromJson(message, "event");
@@ -99,7 +97,7 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
                 // System.out.println("WebSocket Client received pong");
 
             } else if (frame instanceof CloseWebSocketFrame) {
-                log.debug("WebSocket Client received closing");
+                log.debug("WebSocket Client({}) received closing", webSocketClient.getClientId());
                 ch.close();
             }
         }

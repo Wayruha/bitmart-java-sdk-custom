@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -51,6 +52,9 @@ public class WebSocketClient<T> {
     private boolean reconnectionUseLogin = false;
     private boolean isPrint = true;
     private boolean isClose = false;
+    @Getter
+    private int clientId;
+    private Timer keepAliveTimer;
 
     public WebSocketCallBack<T> callBack;
 
@@ -79,6 +83,7 @@ public class WebSocketClient<T> {
         this.callBack = callBack;
         this.uri = new URI(url);
         this.host = uri.getHost() == null ? "127.0.0.1" : uri.getHost();
+        this.clientId = (int) (Math.random() * 100);
         String scheme = uri.getScheme() == null ? "ws" : uri.getScheme();
 
         if (uri.getPort() == -1) {
@@ -148,7 +153,7 @@ public class WebSocketClient<T> {
 
     public void reconnection() {
         try {
-            log.info("WebSocket Client Reconnection to {}", this.uri.toString());
+            log.debug("WebSocket Client({}) Reconnection to {}", clientId, this.uri.toString());
 
             connection();
 
@@ -162,7 +167,9 @@ public class WebSocketClient<T> {
             }
 
             if (!CollectionUtils.isEmpty(this.reconnectionChannel)) {
-                this.subscribe(this.reconnectionChannel);
+                final ArrayList<String> subscriptionChannels = new ArrayList<>(this.reconnectionChannel);
+                this.reconnectionChannel.clear();
+                this.subscribe(subscriptionChannels);
             }
         } catch (CloudException e) {
             e.printStackTrace();
@@ -184,7 +191,7 @@ public class WebSocketClient<T> {
 
         String param = JsonUtils.toJson(opParam);
         if (isPrint) {
-            log.info("WebSocket Client Send:{}", param);
+            log.debug("WebSocket Client({}) Send:{}", clientId, param);
         }
 
         this.clientChannel.writeAndFlush(new TextWebSocketFrame(param));
@@ -197,7 +204,7 @@ public class WebSocketClient<T> {
 
         String param = JsonUtils.toJson(opParam);
         if (isPrint) {
-            log.info("WebSocket Client Send:{}", param);
+            log.debug("WebSocket Client({}) Send:{}", clientId, param);
         }
 
         this.clientChannel.writeAndFlush(new TextWebSocketFrame(param));
@@ -205,10 +212,15 @@ public class WebSocketClient<T> {
 
     private void keepalive() {
         Channel channel = this.clientChannel;
-        new Timer("WebSocket-Keepalive").schedule(new TimerTask() {
+        if(keepAliveTimer != null){
+            keepAliveTimer.cancel();
+        }
+        keepAliveTimer = new Timer("WebSocket-Keepalive");
+        keepAliveTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 if (channel.isActive()) {
+                    log.debug("WebSocket Client({}) KeepAlive", clientId);
                     channel.writeAndFlush(new PingWebSocketFrame(Unpooled.wrappedBuffer(new byte[]{8, 1, 8, 1})));
                 }
             }
@@ -216,7 +228,7 @@ public class WebSocketClient<T> {
     }
 
     public void stop() {
-        log.info("WebSocket Client stop.");
+        log.debug("WebSocket Client({}) stop.", clientId);
         this.isClose = true;
         this.clientChannel.close();
         this.group.shutdownGracefully();
