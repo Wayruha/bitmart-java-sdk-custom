@@ -79,7 +79,7 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
                 TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
                 String message = textFrame.text();
                 if (this.webSocketClient.isPrint()) {
-                    log.debug("WebSocket Client({}) received message:{}", webSocketClient.getClientId(), message);
+                    log.trace("WebSocket Client({}) received message:{}", webSocketClient.getClientId(), message);
                 }
 
                 String event = JsonUtils.fromJson(message, "event");
