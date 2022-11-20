@@ -9,4 +9,8 @@ public interface WebSocketCallBack<T> {
     void onResponse(T data);
 
     TypeReference<T> getType();
+
+    default void onOpen() {}
+    default void onClosed() {}
+    default void onFailure(Throwable ex) {}
 }

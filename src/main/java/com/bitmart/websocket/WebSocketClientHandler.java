@@ -42,6 +42,7 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
     public void channelActive(ChannelHandlerContext ctx) {
         handShaker.handshake(ctx.channel());
         log.debug("WebSocket Client({}) Connecting to {}", webSocketClient.getClientId(), handShaker.uri().toString());
+        this.webSocketClient.callBack.onOpen();
     }
 
     @Override
@@ -51,10 +52,10 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
         if (this.webSocketClient.isClose()) {
             return;
         }
+        this.webSocketClient.callBack.onClosed();
 
         final EventLoop eventLoop = ctx.channel().eventLoop();
-        eventLoop.schedule(() -> webSocketClient.reconnection(), 10L, TimeUnit.SECONDS);
-
+        eventLoop.schedule(webSocketClient::reconnection, 10L, TimeUnit.SECONDS);
     }
 
     @Override
@@ -105,11 +106,13 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        log.error("WebSocket Client({}) exception", webSocketClient.getClientId(), cause);
         cause.printStackTrace();
         if (!handshakeFuture.isDone()) {
             handshakeFuture.setFailure(cause);
         }
         ctx.close();
+        webSocketClient.callBack.onFailure(cause);
     }
 
     private <X> X parseResponse(String json, TypeReference<X> ref) {
