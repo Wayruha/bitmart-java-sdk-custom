@@ -38,7 +38,7 @@ public class SubmitOrderRequest extends CloudRequest {
      * Place order
      */
     public SubmitOrderRequest() {
-        super("/spot/v1/submit_order", Method.POST, Auth.SIGNED);
+        super("/spot/v2/submit_order", Method.POST, Auth.SIGNED);
     }
 
 }

@@ -4,6 +4,7 @@ import com.bitmart.api.annotations.ParamKey;
 import com.bitmart.api.request.Auth;
 import com.bitmart.api.request.CloudRequest;
 import com.bitmart.api.request.Method;
+import com.bitmart.api.request.spot.prv.SubmitOrderRequest;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -50,5 +51,15 @@ public class MarginOrderRequest extends CloudRequest {
         this.price = price;
         this.notional = notional;
         this.clientOrderId = clientOrderId;
+    }
+
+    public MarginOrderRequest(SubmitOrderRequest data) {
+        this();
+        this.symbol = data.getSymbol();
+        this.side = data.getSide();
+        this.type = data.getType();
+        this.size = data.getSize();
+        this.price = data.getPrice();
+        this.notional = data.getNotional();
     }
 }
