@@ -43,7 +43,7 @@ public final class CloudSignature {
 
         }
 
-        throw new CloudException("create signature failed");
+        throw new CloudException(-1, "create signature failed");
     }
 
 

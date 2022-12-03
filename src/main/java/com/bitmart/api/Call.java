@@ -10,7 +10,6 @@ import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +42,7 @@ public final class Call {
 
     private CloudResponse POST(CloudRequest cloudRequest) throws CloudException {
         if (cloudRequest == null) {
-            throw new CloudException("request can not null");
+            throw new CloudException(0, "request can not null");
         } else {
             Map<String, String> paraMap = CommonUtils.genRequestMap(cloudRequest);
 
@@ -63,7 +62,7 @@ public final class Call {
 
     private CloudResponse GET(CloudRequest cloudRequest) throws CloudException {
         if (cloudRequest == null) {
-            throw new CloudException("request can not null");
+            throw new CloudException(0, "request can not null");
         } else {
 
             StringJoiner url = new StringJoiner("");
@@ -84,7 +83,7 @@ public final class Call {
         }
     }
 
-    private String getQueryString(Map<String, String> paraMap){
+    private String getQueryString(Map<String, String> paraMap) {
         StringJoiner fromData = new StringJoiner("");
         for (Map.Entry<String, String> entry : paraMap.entrySet()) {
             fromData.add(entry.getKey()).add("=").add(entry.getValue()).add("&");
@@ -122,9 +121,9 @@ public final class Call {
     }
 
     private CloudResponse getResponse(Map<String, String> paraMap, okhttp3.Call okCall) throws CloudException {
+        Response response = null;
         try {
-            Response response = okCall.execute();
-
+            response = okCall.execute();
             return new CloudResponse()
                     .setResponseContent(response.body().string())
                     .setResponseHttpStatus(response.code())
@@ -133,13 +132,8 @@ public final class Call {
                             .setRemaining(Integer.parseInt(StringUtils.defaultIfBlank(response.header("X-BM-RateLimit-Remaining"), "0")))
                             .setReset(Integer.parseInt(StringUtils.defaultIfBlank(response.header("X-BM-RateLimit-Reset"), "0")))
                     );
-
-        } catch (IOException var18) {
-            log.warn("request cloud error," + paraMap + ", error=" + var18.getMessage());
+        } catch (Exception ex) {
+            throw new CloudException(response == null ? -1 : response.code(), "request cloud exception");
         }
-
-        throw new CloudException("request cloud exception");
     }
-
-
 }

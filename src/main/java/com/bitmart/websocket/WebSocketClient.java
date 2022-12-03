@@ -147,7 +147,7 @@ public class WebSocketClient<T> {
 
             keepalive();
         } catch (Exception e) {
-            throw new CloudException(e.getMessage());
+            throw new CloudException(-1, e.getMessage());
         }
     }
 
