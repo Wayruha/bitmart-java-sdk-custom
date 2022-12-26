@@ -133,7 +133,7 @@ public final class Call {
                             .setReset(Integer.parseInt(StringUtils.defaultIfBlank(response.header("X-BM-RateLimit-Reset"), "0")))
                     );
         } catch (Exception ex) {
-            throw new CloudException(response == null ? -1 : response.code(), "request cloud exception");
+            throw new CloudException(response == null ? -1 : response.code(), "request cloud exception: " + ex);
         }
     }
 }
