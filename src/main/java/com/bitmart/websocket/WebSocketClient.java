@@ -5,7 +5,6 @@ import com.bitmart.api.common.GlobalConst;
 import com.bitmart.api.common.JsonUtils;
 import com.bitmart.api.key.CloudKey;
 import com.bitmart.api.key.CloudSignature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
@@ -40,6 +39,7 @@ import java.util.TimerTask;
 
 @Slf4j
 public class WebSocketClient<T> {
+    private static final int KEEP_ALIVE_PERIOD_MS = 9_000;
 
     private EventLoopGroup group;
     private Channel clientChannel;
@@ -224,7 +224,7 @@ public class WebSocketClient<T> {
                     channel.writeAndFlush(new PingWebSocketFrame(Unpooled.wrappedBuffer(new byte[]{8, 1, 8, 1})));
                 }
             }
-        }, 2000, 10000);
+        }, 2000, KEEP_ALIVE_PERIOD_MS);
     }
 
     public void stop() {
