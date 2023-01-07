@@ -6,6 +6,7 @@ import com.bitmart.api.common.JsonUtils;
 import com.bitmart.api.key.CloudKey;
 import com.bitmart.api.key.CloudSignature;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -40,6 +41,7 @@ import java.util.TimerTask;
 @Slf4j
 public class WebSocketClient<T> {
     private static final int KEEP_ALIVE_PERIOD_MS = 9_000;
+    public static final int MAX_BATCH_SUBSCRIPTION_TOPICS = 20;
 
     private EventLoopGroup group;
     private Channel clientChannel;
@@ -165,10 +167,10 @@ public class WebSocketClient<T> {
                 Thread.sleep(2000L);
             } catch (InterruptedException e) {
             }
-
             if (!CollectionUtils.isEmpty(this.reconnectionChannel)) {
                 final ArrayList<String> subscriptionChannels = new ArrayList<>(this.reconnectionChannel);
                 this.reconnectionChannel.clear();
+                log.debug("WebSocket Client({}) re-subscribe channels: {}", clientId, subscriptionChannels);
                 this.subscribe(subscriptionChannels);
             }
         } catch (CloudException e) {
@@ -200,9 +202,14 @@ public class WebSocketClient<T> {
 
     public void subscribe(List<String> channels) {
         this.reconnectionChannel.addAll(channels);
-        OpParam opParam = new OpParam().setOp("subscribe").setArgs(channels);
+        Lists.partition(channels, MAX_BATCH_SUBSCRIPTION_TOPICS).forEach(this::_subscribe);
+    }
 
-        String param = JsonUtils.toJson(opParam);
+    private void _subscribe(List<String> channels) {
+        if (channels.size() > MAX_BATCH_SUBSCRIPTION_TOPICS)
+            throw new IllegalArgumentException("Subscriptions batch size violated: " + channels.size() + "; max: " + MAX_BATCH_SUBSCRIPTION_TOPICS);
+        final OpParam opParam = new OpParam().setOp("subscribe").setArgs(channels);
+        final String param = JsonUtils.toJson(opParam);
         if (isPrint) {
             log.debug("WebSocket Client({}) Send:{}", clientId, param);
         }
@@ -212,7 +219,7 @@ public class WebSocketClient<T> {
 
     private void keepalive() {
         Channel channel = this.clientChannel;
-        if(keepAliveTimer != null){
+        if (keepAliveTimer != null) {
             keepAliveTimer.cancel();
         }
         keepAliveTimer = new Timer("WebSocket-Keepalive");

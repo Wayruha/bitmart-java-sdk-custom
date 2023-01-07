@@ -42,17 +42,13 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
     public void channelActive(ChannelHandlerContext ctx) {
         handShaker.handshake(ctx.channel());
         log.debug("WebSocket Client({}) Connecting to {}", webSocketClient.getClientId(), handShaker.uri().toString());
-        this.webSocketClient.callBack.onOpen();
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         log.debug("WebSocket Client({}) disconnected! {}", webSocketClient.getClientId(), handShaker.uri().toString());
-
-        if (this.webSocketClient.isClose()) {
-            return;
-        }
         this.webSocketClient.callBack.onClosed();
+        if (this.webSocketClient.isClose()) return;
 
         final EventLoop eventLoop = ctx.channel().eventLoop();
         eventLoop.schedule(webSocketClient::reconnection, 10L, TimeUnit.SECONDS);
@@ -65,6 +61,7 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
             try {
                 handShaker.finishHandshake(ch, (FullHttpResponse) msg);
                 log.debug("WebSocket Client({}) connected!", webSocketClient.getClientId());
+                this.webSocketClient.callBack.onOpen();
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
                 log.error("WebSocket Client({}) failed to connect", webSocketClient.getClientId());
@@ -107,7 +104,6 @@ public class WebSocketClientHandler<T> extends SimpleChannelInboundHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.error("WebSocket Client({}) exception", webSocketClient.getClientId(), cause);
-        cause.printStackTrace();
         if (!handshakeFuture.isDone()) {
             handshakeFuture.setFailure(cause);
         }
