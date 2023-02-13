@@ -1,6 +1,7 @@
 package com.bitmart.api;
 
 import com.bitmart.api.common.CloudException;
+import com.bitmart.api.dto.OrderStatus;
 import com.bitmart.api.request.spot.prv.*;
 import com.bitmart.api.request.spot.pub.*;
 import org.junit.jupiter.api.DisplayName;
@@ -179,7 +180,7 @@ public final class TestSpot extends TestData {
     @DisplayName("Test. GET /spot/v2/orders")
     void ordersV2() throws CloudException {
         System.out.println(
-                call.callCloud(new OrdersV2Request().setSymbol("BTC_USDT").setN(10).setStatus("6"))
+                call.callCloud(new OrdersV2Request().setSymbol("BTC_USDT").setN(10).setStatus(OrderStatus.FILLED))
         );
     }
 
