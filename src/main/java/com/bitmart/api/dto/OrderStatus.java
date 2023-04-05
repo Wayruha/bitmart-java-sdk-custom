@@ -22,7 +22,9 @@ public enum OrderStatus {
     @JsonProperty("9")
     OUTSTANDING("9"),
     @JsonProperty("10")
-    FILLED_AND_CANCELED("10");
+    FILLED_AND_CANCELED("10"),
+    @JsonProperty("11")
+    PARTIALLY_FILLED_AND_CANCELED("11");
 
     private String code;
 
