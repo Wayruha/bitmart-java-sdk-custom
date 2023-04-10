@@ -13,6 +13,10 @@ public class AssetDetails {
     private String network;
     private boolean withdrawEnabled;
     private boolean depositEnabled;
+    @JsonProperty("withdraw_minsize")
+    private String withdrawMinSize;
+    @JsonProperty("withdraw_minfee")
+    private String withdrawMinFee;
 
     public String getCanonicalAssetName() {
         return assetFullName.split("-")[0].toUpperCase();
