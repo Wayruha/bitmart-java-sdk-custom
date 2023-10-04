@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Ticker {
     private String symbol;
+    @JsonProperty("last_price")
     private BigDecimal lastPrice;
     @JsonProperty("base_volume_24h")
     private BigDecimal baseVolume24h;
@@ -26,9 +27,13 @@ public class Ticker {
     @JsonProperty("close_24h")
     private BigDecimal close24h;
     private BigDecimal fluctuation;
+    @JsonProperty("best_ask")
     private BigDecimal bestAsk;
+    @JsonProperty("best_ask_size")
     private BigDecimal bestAskSize;
+    @JsonProperty("best_bid")
     private BigDecimal bestBid;
+    @JsonProperty("best_bid_size")
     private BigDecimal bestBidSize;
     private String url;
 }
